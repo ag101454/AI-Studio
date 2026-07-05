@@ -89,7 +89,7 @@ export function ImagePage() {
 
   return (
     <PageTransition>
-      <div className="flex h-[calc(100vh-4rem)] -m-6">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] -m-3 lg:-m-6">
         {/* Main Content */}
         <div className="flex-1 flex flex-col bg-background">
           {/* Header */}
