@@ -13,14 +13,10 @@ export function PWAInstall() {
       setDeferredPrompt(e)
       setShowPrompt(true)
     }
-
     window.addEventListener('beforeinstallprompt', handler)
-
-    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setShowPrompt(false)
     }
-
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
@@ -28,7 +24,6 @@ export function PWAInstall() {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
-    console.log('Install outcome:', outcome)
     setDeferredPrompt(null)
     setShowPrompt(false)
   }
@@ -49,23 +44,16 @@ export function PWAInstall() {
               </div>
               <div className="flex-1">
                 <h4 className="font-semibold text-foreground text-sm">Install AI Studio</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Install for quick access and offline use
-                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Install for quick access and offline use</p>
                 <div className="flex gap-2 mt-3">
                   <Button onClick={handleInstall} size="sm" className="gap-1.5 rounded-lg text-xs"
                     style={{ background: 'linear-gradient(135deg, #c8870a, #9e6b08)', color: '#fdfaf2' }}>
-                    <Download size={13} />
-                    Install
+                    <Download size={13} />Install
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setShowPrompt(false)} className="text-xs rounded-lg">
-                    Not now
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowPrompt(false)} className="text-xs rounded-lg">Not now</Button>
                 </div>
               </div>
-              <button onClick={() => setShowPrompt(false)} className="text-muted-foreground hover:text-foreground">
-                <X size={16} />
-              </button>
+              <button onClick={() => setShowPrompt(false)} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
             </div>
           </div>
         </motion.div>
