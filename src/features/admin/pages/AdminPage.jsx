@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
-    LayoutDashboard, Users, Bell, Send, Search, Check,
-    Loader2, TrendingUp, Eye, EyeOff, Clock, Filter,
-    UserCheck, UserX, MessageSquare, AlertTriangle,
-    RefreshCw, ChevronDown, X, Trash2, Mail, RotateCcw
-  } from 'lucide-react'
+  LayoutDashboard, Users, Bell, Send, Search, Check,
+  Loader2, TrendingUp, Eye, EyeOff, Clock, Filter,
+  UserCheck, UserX, MessageSquare, AlertTriangle,
+  RefreshCw, ChevronDown, X, Trash2, Mail, RotateCcw
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -33,16 +33,14 @@ export function AdminPage() {
   const [error, setError] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // Notification form
   const [notifTitle, setNotifTitle] = useState('')
   const [notifMessage, setNotifMessage] = useState('')
   const [notifType, setNotifType] = useState('info')
   const [notifLink, setNotifLink] = useState('')
 
-  // Load all data on mount and when tab changes
   useEffect(() => {
     loadData()
-  }, [activeTab])
+  }, [])
 
   const loadData = async () => {
     setIsLoading(true)
@@ -56,12 +54,14 @@ export function AdminPage() {
         getNotificationLog(),
       ])
 
+      console.log('Users loaded:', usersRes.users?.length)
+      
       if (usersRes.success) setUsers(usersRes.users || [])
       if (countRes.success) setUserCount(countRes.count)
       if (statsRes.success) setStats(statsRes)
       if (logRes.success) setLog(logRes.log || [])
     } catch (err) {
-      setError('Failed to load data. Please try again.')
+      setError('Failed to load data')
     }
 
     setIsLoading(false)
@@ -102,6 +102,7 @@ export function AdminPage() {
     setError('')
     setIsSending(true)
 
+    console.log('Sending to ALL users...')
     const result = await notifyAllUsers({
       title: notifTitle.trim(),
       message: notifMessage.trim(),
@@ -118,7 +119,7 @@ export function AdminPage() {
       loadData()
       setTimeout(() => setShowSuccess(false), 5000)
     } else {
-      setError(result.error || 'Failed to send notifications')
+      setError(result.error || 'Failed to send')
     }
   }
 
@@ -127,9 +128,8 @@ export function AdminPage() {
       setError('Title and message are required')
       return
     }
-
     if (selectedUsers.length === 0) {
-      setError('Please select at least one user')
+      setError('Select at least one user')
       return
     }
 
@@ -154,36 +154,7 @@ export function AdminPage() {
       loadData()
       setTimeout(() => setShowSuccess(false), 5000)
     } else {
-      setError(result.error || 'Failed to send notifications')
-    }
-  }
-
-  const handleSendToOne = async (userId) => {
-    if (!notifTitle.trim() || !notifMessage.trim()) {
-      setError('Title and message are required')
-      return
-    }
-
-    setError('')
-    setIsSending(true)
-
-    const result = await notifyUser(userId, {
-      title: notifTitle.trim(),
-      message: notifMessage.trim(),
-      type: notifType,
-      link: notifLink.trim(),
-    })
-
-    setIsSending(false)
-
-    if (result.success) {
-      setSentCount(1)
-      setShowSuccess(true)
-      resetForm()
-      loadData()
-      setTimeout(() => setShowSuccess(false), 5000)
-    } else {
-      setError(result.error || 'Failed to send notification')
+      setError(result.error || 'Failed to send')
     }
   }
 
@@ -195,7 +166,7 @@ export function AdminPage() {
   }
 
   const timeAgo = (dateString) => {
-    if (!dateString) return 'Unknown'
+    if (!dateString) return ''
     const now = new Date()
     const date = new Date(dateString)
     const seconds = Math.floor((now - date) / 1000)
@@ -207,15 +178,6 @@ export function AdminPage() {
     const days = Math.floor(hours / 24)
     if (days < 7) return `${days}d ago`
     return date.toLocaleDateString()
-  }
-
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'success': return '✅'
-      case 'warning': return '⚠️'
-      case 'error': return '❌'
-      default: return 'ℹ️'
-    }
   }
 
   const tabs = [
@@ -238,23 +200,17 @@ export function AdminPage() {
                 Admin Panel
               </h1>
               <p className="text-xs" style={{ color: '#9c8c62' }}>
-                Manage users & send real-time notifications
+                {userCount} users · Manage & send notifications
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadData}
-              disabled={isLoading}
-              className="gap-1.5 rounded-lg"
-            >
+            <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading} className="gap-1.5 rounded-lg">
               <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
               Refresh
             </Button>
             <Badge className="bg-red-100 text-red-700 border-0 text-xs font-medium">
-              Admin Access
+              Admin
             </Badge>
           </div>
         </div>
@@ -285,13 +241,13 @@ export function AdminPage() {
           <ScrollArea className="h-full">
             <div className="p-6 max-w-5xl mx-auto space-y-6">
 
-              {/* Stats Cards */}
+              {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Total Users', value: userCount, icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
-                  { label: 'Sent', value: stats.totalSent, icon: Send, color: 'text-green-500', bg: 'bg-green-50' },
-                  { label: 'Read', value: stats.totalRead, icon: Eye, color: 'text-amber-500', bg: 'bg-amber-50' },
-                  { label: 'Unread', value: stats.totalUnread, icon: EyeOff, color: 'text-red-500', bg: 'bg-red-50' },
+                  { label: 'Total Users', value: userCount, icon: Users, color: 'text-blue-500' },
+                  { label: 'Total Sent', value: stats.totalSent, icon: Send, color: 'text-green-500' },
+                  { label: 'Read', value: stats.totalRead, icon: Eye, color: 'text-amber-500' },
+                  { label: 'Unread', value: stats.totalUnread, icon: EyeOff, color: 'text-red-500' },
                 ].map((stat) => {
                   const Icon = stat.icon
                   return (
@@ -306,78 +262,50 @@ export function AdminPage() {
                 })}
               </div>
 
-              {/* Error Alert */}
+              {/* Error */}
               {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3"
-                >
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
                   <AlertTriangle size={18} className="text-red-500 shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-700">Error</p>
-                    <p className="text-xs text-red-500 mt-0.5">{error}</p>
+                    <p className="text-xs text-red-500">{error}</p>
                   </div>
-                  <button onClick={() => setError('')} className="text-red-400 hover:text-red-600">
-                    <X size={16} />
-                  </button>
+                  <button onClick={() => setError('')} className="text-red-400 hover:text-red-600"><X size={16} /></button>
                 </motion.div>
               )}
 
-              {/* Success Alert */}
+              {/* Success */}
               {showSuccess && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-xl bg-green-50 border border-green-200 flex items-start gap-3"
-                >
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-green-50 border border-green-200 flex items-start gap-3">
                   <Check size={18} className="text-green-500 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-green-700">Notification Sent!</p>
-                    <p className="text-xs text-green-500 mt-0.5">
-                      Successfully sent to {sentCount} user{sentCount !== 1 ? 's' : ''}
-                    </p>
+                    <p className="text-sm font-medium text-green-700">Sent Successfully!</p>
+                    <p className="text-xs text-green-500">Sent to {sentCount} user{sentCount !== 1 ? 's' : ''}</p>
                   </div>
-                  <button onClick={() => setShowSuccess(false)} className="text-green-400 hover:text-green-600">
-                    <X size={16} />
-                  </button>
+                  <button onClick={() => setShowSuccess(false)} className="text-green-400 hover:text-green-600"><X size={16} /></button>
                 </motion.div>
               )}
 
               {/* SEND TAB */}
               {activeTab === 'send' && (
-                <div className="bg-white rounded-2xl border border-malt-200 p-6 shadow-sm space-y-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-heading text-lg font-semibold text-foreground flex items-center gap-2">
-                      <Send size={18} className="text-turmeric-500" />
-                      Compose Notification
-                    </h3>
-                    <Button variant="ghost" size="sm" onClick={resetForm} className="text-xs gap-1">
-                      <RotateCcw size={12} />Reset
-                    </Button>
-                  </div>
+                <div className="bg-white rounded-2xl border border-malt-200 p-6 shadow-sm space-y-4">
+                  <h3 className="font-heading text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Send size={18} className="text-turmeric-500" />
+                    Compose Notification
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                        Title <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        value={notifTitle}
-                        onChange={(e) => setNotifTitle(e.target.value)}
-                        placeholder="e.g., 🚀 New Feature Available!"
-                        className="w-full rounded-xl border-2 border-malt-200 bg-malt-50/50 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-turmeric-50 focus:border-turmeric-300 transition-all"
-                      />
+                      <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Title *</label>
+                      <input value={notifTitle} onChange={(e) => setNotifTitle(e.target.value)}
+                        placeholder="Notification title" className="w-full rounded-xl border-2 border-malt-200 p-3 text-sm" />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                        Type
-                      </label>
-                      <select
-                        value={notifType}
-                        onChange={(e) => setNotifType(e.target.value)}
-                        className="w-full rounded-xl border-2 border-malt-200 bg-malt-50/50 p-3 text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-turmeric-50 focus:border-turmeric-300 transition-all"
-                      >
+                      <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Type</label>
+                      <select value={notifType} onChange={(e) => setNotifType(e.target.value)}
+                        className="w-full rounded-xl border-2 border-malt-200 p-3 text-sm">
                         <option value="info">ℹ️ Info</option>
                         <option value="success">✅ Success</option>
                         <option value="warning">⚠️ Warning</option>
@@ -385,57 +313,29 @@ export function AdminPage() {
                       </select>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                        Message <span className="text-red-400">*</span>
-                      </label>
-                      <textarea
-                        value={notifMessage}
-                        onChange={(e) => setNotifMessage(e.target.value)}
-                        placeholder="Enter the notification message that users will see..."
-                        rows={3}
-                        className="w-full rounded-xl border-2 border-malt-200 bg-malt-50/50 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-turmeric-50 focus:border-turmeric-300 resize-none transition-all"
-                      />
+                      <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Message *</label>
+                      <textarea value={notifMessage} onChange={(e) => setNotifMessage(e.target.value)}
+                        placeholder="Message content..." rows={3}
+                        className="w-full rounded-xl border-2 border-malt-200 p-3 text-sm resize-none" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                        Link (optional)
-                      </label>
-                      <input
-                        value={notifLink}
-                        onChange={(e) => setNotifLink(e.target.value)}
-                        placeholder="/dashboard/chat"
-                        className="w-full rounded-xl border-2 border-malt-200 bg-malt-50/50 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-turmeric-50 focus:border-turmeric-300 transition-all"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        Users will be navigated here when they click the notification
-                      </p>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Link (optional)</label>
+                      <input value={notifLink} onChange={(e) => setNotifLink(e.target.value)}
+                        placeholder="/dashboard/chat" className="w-full rounded-xl border-2 border-malt-200 p-3 text-sm" />
                     </div>
                   </div>
 
-                  {/* Send Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <Button
-                      onClick={handleSendToAll}
+                    <Button onClick={handleSendToAll}
                       disabled={!notifTitle.trim() || !notifMessage.trim() || isSending}
-                      className="flex-1 h-12 gap-2 rounded-xl font-semibold text-base"
-                      style={{
-                        background: 'linear-gradient(135deg, #c8870a, #9e6b08)',
-                        color: '#fdfaf2',
-                      }}
-                    >
-                      {isSending ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Send size={18} />
-                      )}
+                      className="flex-1 h-12 gap-2 rounded-xl font-semibold text-base text-white"
+                      style={{ background: 'linear-gradient(135deg, #c8870a, #9e6b08)' }}>
+                      {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                       Send to ALL Users ({userCount})
                     </Button>
-                    <Button
-                      onClick={handleSendToSelected}
+                    <Button onClick={handleSendToSelected}
                       disabled={!notifTitle.trim() || !notifMessage.trim() || selectedUsers.length === 0 || isSending}
-                      variant="outline"
-                      className="h-12 gap-2 rounded-xl font-semibold"
-                    >
+                      variant="outline" className="h-12 gap-2 rounded-xl font-semibold">
                       <Users size={18} />
                       Send to Selected ({selectedUsers.length})
                     </Button>
@@ -449,99 +349,45 @@ export function AdminPage() {
                   <div className="p-4 border-b border-malt-100 flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                       <Users size={16} className="text-muted-foreground" />
-                      <span className="text-sm font-semibold text-foreground">
-                        {filteredUsers.length} User{filteredUsers.length !== 1 ? 's' : ''}
-                      </span>
-                      {selectedUsers.length > 0 && (
-                        <Badge className="bg-turmeric-100 text-turmeric-700 text-xs">
-                          {selectedUsers.length} selected
-                        </Badge>
-                      )}
+                      <span className="text-sm font-semibold">{filteredUsers.length} User{filteredUsers.length !== 1 ? 's' : ''}</span>
+                      {selectedUsers.length > 0 && <Badge className="bg-turmeric-100 text-turmeric-700">{selectedUsers.length} selected</Badge>}
                     </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <input
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by name or email..."
-                        className="pl-9 pr-4 py-2 rounded-lg border border-malt-200 text-sm bg-malt-50/50 w-64 focus:outline-none focus:ring-2 focus:ring-turmeric-50"
-                      />
+                      <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by name or email..." className="pl-9 pr-4 py-2 rounded-lg border border-malt-200 text-sm w-64" />
                     </div>
                   </div>
 
-                  {/* Select All */}
                   <div className="px-4 py-2 border-b border-malt-50 bg-malt-50/30">
                     <label className="flex items-center gap-2 cursor-pointer text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selectAll}
-                        onChange={handleSelectAll}
-                        className="rounded w-4 h-4"
-                      />
-                      <span className="text-muted-foreground">Select all visible users</span>
+                      <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="rounded" />
+                      Select all visible
                     </label>
                   </div>
 
                   {isLoading ? (
-                    <div className="flex items-center justify-center py-16">
-                      <Loader2 size={32} className="animate-spin text-muted-foreground" />
-                    </div>
+                    <div className="flex items-center justify-center py-16"><Loader2 size={32} className="animate-spin text-muted-foreground" /></div>
                   ) : filteredUsers.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                       <Users size={40} className="text-muted-foreground mb-3" />
-                      <p className="text-sm font-medium text-foreground">No users found</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {searchTerm ? 'Try a different search term' : 'Users will appear here after registration'}
-                      </p>
+                      <p className="text-sm font-medium">No users found</p>
+                      <p className="text-xs text-muted-foreground mt-1">{searchTerm ? 'Try different search' : 'Register a new account to see users here'}</p>
                     </div>
                   ) : (
                     <ScrollArea className="max-h-[500px]">
                       {filteredUsers.map((u) => (
-                        <div
-                          key={u.id}
-                          className="flex items-center gap-3 px-4 py-3 border-b border-malt-50 hover:bg-malt-50/30 transition-colors group"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedUsers.includes(u.id)}
-                            onChange={() => handleSelectUser(u.id)}
-                            className="rounded w-4 h-4 shrink-0"
-                          />
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                            style={{ background: 'linear-gradient(135deg, #c8870a, #e6a817)' }}
-                          >
-                            {u.full_name
-                              ? u.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                              : u.email?.substring(0, 2).toUpperCase() || 'U'}
+                        <div key={u.id} className="flex items-center gap-3 px-4 py-3 border-b border-malt-50 hover:bg-malt-50/30 transition-colors">
+                          <input type="checkbox" checked={selectedUsers.includes(u.id)} onChange={() => handleSelectUser(u.id)} className="rounded shrink-0" />
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #c8870a, #e6a817)' }}>
+                            {u.full_name ? u.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : (u.email?.substring(0, 2).toUpperCase() || 'U')}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {u.full_name || 'No name'}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {u.email || 'No email'}
-                            </p>
+                            <p className="text-sm font-medium truncate">{u.full_name || 'No name'}</p>
+                            <p className="text-xs text-muted-foreground truncate">{u.email || 'No email'}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[10px]">
-                              {u.id === user?.id ? 'You' : 'User'}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setNotifTitle(`Personal message for ${u.full_name || 'User'}`)
-                                setNotifMessage(`Hello! This is a personal notification.`)
-                                handleSendToOne(u.id)
-                              }}
-                              disabled={isSending}
-                              className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Send size={11} />
-                              Send
-                            </Button>
-                          </div>
+                          <Badge variant="outline" className="text-[10px]">{u.id === user?.id ? 'You' : 'User'}</Badge>
                         </div>
                       ))}
                     </ScrollArea>
@@ -553,72 +399,35 @@ export function AdminPage() {
               {activeTab === 'log' && (
                 <div className="bg-white rounded-2xl border border-malt-200 shadow-sm overflow-hidden">
                   <div className="p-4 border-b border-malt-100 flex items-center justify-between">
-                    <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
-                      <Clock size={16} className="text-muted-foreground" />
-                      Notification History
-                    </h3>
-                    <Badge variant="outline" className="text-xs">
-                      {log.length} records
-                    </Badge>
+                    <h3 className="font-heading text-sm font-semibold">Notification History</h3>
+                    <Badge variant="outline" className="text-xs">{log.length} records</Badge>
                   </div>
-
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-16">
-                      <Loader2 size={32} className="animate-spin text-muted-foreground" />
-                    </div>
-                  ) : log.length === 0 ? (
+                  {log.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                       <Bell size={40} className="text-muted-foreground mb-3" />
-                      <p className="text-sm font-medium text-foreground">No notifications sent yet</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Send your first notification from the Send tab
-                      </p>
+                      <p className="text-sm font-medium">No notifications sent yet</p>
+                      <p className="text-xs text-muted-foreground mt-1">Send your first notification from the Send tab</p>
                     </div>
                   ) : (
                     <ScrollArea className="max-h-[600px]">
                       {log.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-start gap-3 px-4 py-3 border-b border-malt-50 hover:bg-malt-50/20 transition-colors"
-                        >
+                        <div key={item.id} className="flex items-start gap-3 px-4 py-3 border-b border-malt-50">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm ${
-                            item.type === 'success' ? 'bg-green-100' :
-                            item.type === 'warning' ? 'bg-amber-100' :
-                            item.type === 'error' ? 'bg-red-100' : 'bg-blue-100'
+                            item.type === 'success' ? 'bg-green-100' : item.type === 'warning' ? 'bg-amber-100' : item.type === 'error' ? 'bg-red-100' : 'bg-blue-100'
                           }`}>
-                            {getTypeIcon(item.type)}
+                            {item.type === 'success' ? '✅' : item.type === 'warning' ? '⚠️' : item.type === 'error' ? '❌' : 'ℹ️'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground">{item.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{item.message}</p>
-                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                              <span className="text-[10px] text-muted-foreground">
-                                {timeAgo(item.created_at)}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">·</span>
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Mail size={10} />
-                                {item.profiles?.full_name || item.profiles?.email || 'Unknown User'}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">·</span>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] ${
-                                  item.read
-                                    ? 'text-green-500 border-green-200 bg-green-50'
-                                    : 'text-amber-500 border-amber-200 bg-amber-50'
-                                }`}
-                              >
-                                {item.read ? '✓ Read' : '● Unread'}
+                            <p className="text-sm font-medium">{item.title}</p>
+                            <p className="text-xs text-muted-foreground">{item.message}</p>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                              <span>{timeAgo(item.created_at)}</span>
+                              <span>·</span>
+                              <span>{item.profiles?.full_name || item.profiles?.email || 'Unknown'}</span>
+                              <span>·</span>
+                              <Badge variant="outline" className={`text-[10px] ${item.read ? 'text-green-500' : 'text-amber-500'}`}>
+                                {item.read ? 'Read' : 'Unread'}
                               </Badge>
-                              {item.link && (
-                                <>
-                                  <span className="text-[10px] text-muted-foreground">·</span>
-                                  <span className="text-[10px] text-blue-500 truncate max-w-[150px]">
-                                    {item.link}
-                                  </span>
-                                </>
-                              )}
                             </div>
                           </div>
                         </div>

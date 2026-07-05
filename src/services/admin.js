@@ -1,17 +1,49 @@
 import { supabase } from '@/lib/supabase'
 
 /**
- * Get all users for admin panel
+ * Get ALL users - from auth.users via Supabase
  */
 export async function getAllUsers() {
   try {
-    const { data, error } = await supabase
+    // Get users from profiles table (synced with auth)
+    const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return { success: true, users: data }
+    if (profileError) throw profileError
+
+    // Also get users directly from auth if possible
+    let authUsers = []
+    try {
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers()
+      if (!authError && authData) {
+        authUsers = authData.users.map(u => ({
+          id: u.id,
+          email: u.email,
+          full_name: u.user_metadata?.full_name || '',
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at,
+        }))
+      }
+    } catch (e) {
+      console.log('Admin listUsers not available, using profiles only')
+    }
+
+    // Merge both sources
+    const allUsers = profiles || []
+    
+    // Add any auth users not in profiles
+    if (authUsers.length > 0) {
+      const profileIds = new Set(allUsers.map(u => u.id))
+      authUsers.forEach(u => {
+        if (!profileIds.has(u.id)) {
+          allUsers.push(u)
+        }
+      })
+    }
+
+    return { success: true, users: allUsers }
   } catch (error) {
     console.error('getAllUsers error:', error)
     return { success: false, error: error.message, users: [] }
@@ -30,7 +62,6 @@ export async function getUserCount() {
     if (error) throw error
     return { success: true, count: count || 0 }
   } catch (error) {
-    console.error('getUserCount error:', error)
     return { success: false, count: 0 }
   }
 }
@@ -49,8 +80,7 @@ export async function getNotificationStats() {
       .select('*', { count: 'exact', head: true })
       .eq('read', true)
 
-    if (sentError) throw sentError
-    if (readError) throw readError
+    if (sentError || readError) throw sentError || readError
 
     return {
       success: true,
@@ -59,7 +89,6 @@ export async function getNotificationStats() {
       totalUnread: (totalSent || 0) - (totalRead || 0),
     }
   } catch (error) {
-    console.error('getNotificationStats error:', error)
     return { success: false, totalSent: 0, totalRead: 0, totalUnread: 0 }
   }
 }
@@ -69,7 +98,7 @@ export async function getNotificationStats() {
  */
 export async function notifyAllUsers({ title, message, type = 'info', link = '' }) {
   try {
-    // Get all user IDs from profiles table
+    // Get ALL user IDs from profiles
     const { data: users, error: userError } = await supabase
       .from('profiles')
       .select('id')
@@ -80,7 +109,7 @@ export async function notifyAllUsers({ title, message, type = 'info', link = '' 
       return { success: false, error: 'No users found in the database' }
     }
 
-    // Create notification object for each user
+    // Create notification for EACH user
     const notifications = users.map((user) => ({
       user_id: user.id,
       title,
@@ -90,7 +119,7 @@ export async function notifyAllUsers({ title, message, type = 'info', link = '' 
       read: false,
     }))
 
-    // Insert all notifications at once
+    // Insert all notifications
     const { error: insertError } = await supabase
       .from('notifications')
       .insert(notifications)
@@ -106,7 +135,7 @@ export async function notifyAllUsers({ title, message, type = 'info', link = '' 
 }
 
 /**
- * Send notification to a specific user
+ * Send notification to specific user
  */
 export async function notifyUser(userId, { title, message, type = 'info', link = '' }) {
   try {
@@ -122,11 +151,8 @@ export async function notifyUser(userId, { title, message, type = 'info', link =
       })
 
     if (error) throw error
-
-    console.log(`✅ Sent notification to user: ${userId}`)
     return { success: true }
   } catch (error) {
-    console.error('notifyUser error:', error)
     return { success: false, error: error.message }
   }
 }
@@ -158,13 +184,12 @@ export async function notifyMultipleUsers(userIds, { title, message, type = 'inf
     console.log(`✅ Sent notification to ${userIds.length} users`)
     return { success: true, count: userIds.length }
   } catch (error) {
-    console.error('notifyMultipleUsers error:', error)
     return { success: false, error: error.message }
   }
 }
 
 /**
- * Get recent notification log
+ * Get notification log
  */
 export async function getNotificationLog(limit = 50) {
   try {
@@ -176,9 +201,8 @@ export async function getNotificationLog(limit = 50) {
 
     if (error) throw error
 
-    // Get user info for each notification
     const enrichedData = await Promise.all(
-      data.map(async (notification) => {
+      (data || []).map(async (notification) => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('full_name, email')
@@ -194,7 +218,6 @@ export async function getNotificationLog(limit = 50) {
 
     return { success: true, log: enrichedData }
   } catch (error) {
-    console.error('getNotificationLog error:', error)
     return { success: false, error: error.message, log: [] }
   }
 }
