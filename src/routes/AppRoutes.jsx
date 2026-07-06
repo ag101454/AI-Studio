@@ -16,6 +16,7 @@ import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { AdminPage } from '@/features/admin/pages/AdminPage'
 import { APIKeysPage } from '@/features/apikeys/pages/APIKeysPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
+import { BillingPage } from '@/features/billing/pages/BillingPage'
 import { BlogPage } from '@/features/blog/pages/BlogPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
@@ -27,23 +28,11 @@ import { PublicRoute } from '@/components/auth/PublicRoute'
 import { AdminRoute } from '@/components/auth/AdminRoute'
 import { SEO } from '@/components/SEO'
 
-/**
- * Application Routes
- * 
- * Complete route configuration for AI Studio.
- * 
- * Protection:
- * - Public routes: Accessible by everyone
- * - Auth routes: Redirect to dashboard if logged in
- * - Protected routes: Redirect to login if not authenticated
- * - Admin routes: Require admin session
- */
 function AppRoutes() {
   return (
     <Routes>
       {/* ==================== PUBLIC ROUTES ==================== */}
       
-      {/* Landing Page */}
       <Route path="/" element={
         <>
           <SEO 
@@ -157,7 +146,7 @@ function AppRoutes() {
           </>
         } />
 
-        {/* User Account */}
+        {/* User Account Pages */}
         <Route path="profile" element={
           <>
             <SEO title="Profile" description="Manage your profile" />
@@ -174,6 +163,12 @@ function AppRoutes() {
           <>
             <SEO title="API Keys" description="Manage your API keys" />
             <APIKeysPage />
+          </>
+        } />
+        <Route path="billing" element={
+          <>
+            <SEO title="Billing" description="View your subscription and billing" />
+            <BillingPage />
           </>
         } />
 

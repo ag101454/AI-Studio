@@ -396,12 +396,9 @@ export function Navbar({ onMenuClick, sidebarOpen }) {
             <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/dashboard/api-keys')}>
                 🔑 API Keys
                 </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              style={{ color: '#3d2e14' }}
-            >
-              💳 Billing & Subscription
-            </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/dashboard/billing')}>
+                    💳 Billing & Subscription
+                    </DropdownMenuItem>
 
             <DropdownMenuSeparator style={{ backgroundColor: '#e8d9b0' }} />
 
