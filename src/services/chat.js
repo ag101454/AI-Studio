@@ -5,7 +5,7 @@
  */
 
 // ⚠️ PASTE YOUR GEMINI API KEY HERE
-const GEMINI_API_KEY = 'AQ.Ab8RN6J3hmZ13NY7egPRwMKKWHj7HQTU57oZvLDbxrCS4Z_ZYA'  // ← Your API key
+const GEMINI_API_KEY = 'AQ.Ab8RN6IxcKAe0_sz_bnxXxcg97Sj3jZEgSjfYNQTzU4LuXYlSQ'  // ← Your API key
 
 /**
  * Send message to Gemini AI and get response

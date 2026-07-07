@@ -5,7 +5,7 @@
  * Secondary: DeepSeek Coder via Hugging Face (free, code specialist)
  */
 
-const GEMINI_API_KEY = 'AQ.Ab8RN6J3hmZ13NY7egPRwMKKWHj7HQTU57oZvLDbxrCS4Z_ZYA'  // ← Your Gemini key
+const GEMINI_API_KEY = 'AQ.Ab8RN6IxcKAe0_sz_bnxXxcg97Sj3jZEgSjfYNQTzU4LuXYlSQ'  // ← Your Gemini key
 const HF_API_KEY = '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'        // ← Your Hugging Face token
 
 // Choose provider: 'gemini' | 'deepseek' | 'auto'
