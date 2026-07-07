@@ -3,7 +3,7 @@
  * Powered by Google Gemini - Creates ATS-optimized resumes
  */
 
-const GEMINI_API_KEY = 'AQ.Ab8RN6IJ9ww78zUJyoyvVNFW9dxvhF2X5GxCzkVDGURCIEyAYw'  // ← Your Gemini API key
+const GEMINI_API_KEY = 'AQ.Ab8RN6KbfwvX1KMnx2PRxRJDbUnb-f2v__JElZu5P5gcUjoBfw'  // ← Your Gemini API key
 
 /**
  * Resume sections
