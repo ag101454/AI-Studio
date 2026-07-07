@@ -3,7 +3,7 @@
  * Powered by Google Gemini - Professional email generation
  */
 
-const GEMINI_API_KEY = 'AQ.Ab8RN6KbfwvX1KMnx2PRxRJDbUnb-f2v__JElZu5P5gcUjoBfw'  // ← Your Gemini API key
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AQ.Ab8RN6KbfwvX1KMnx2PRxRJDbUnb-f2v__JElZu5P5gcUjoBfw'  // ← Your Gemini API key
 
 /**
  * Email types
