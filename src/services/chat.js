@@ -5,7 +5,7 @@
  */
 
 // ⚠️ PASTE YOUR GEMINI API KEY HERE
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AQ.Ab8RN6KbfwvX1KMnx2PRxRJDbUnb-f2v__JElZu5P5gcUjoBfw'  // ← Your API key
+const GEMINI_API_KEY = 'AQ.Ab8RN6J3hmZ13NY7egPRwMKKWHj7HQTU57oZvLDbxrCS4Z_ZYA'  // ← Your API key
 
 /**
  * Send message to Gemini AI and get response
